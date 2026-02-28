@@ -123,12 +123,15 @@ public:
         if ((bytes_read = recv(sockfd, (char*)&len, sizeof(len), 0)) <= 0) {
             // 正常断开连接
             if (bytes_read == 0) {
-                return RpcResponse{nullptr};
+                close(sockfd);
+                throw std::runtime_error("Connection closed by server (EOF)");
             }
 
-            // 异常退出
-            close(sockfd);
-            throw std::runtime_error("Recv length error");
+            if (errno != EINTR) {
+                // 异常退出
+                close(sockfd);
+                throw std::runtime_error("Recv length error");
+            }
         }
 
         // 读取json_str

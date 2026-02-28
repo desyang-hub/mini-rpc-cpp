@@ -72,19 +72,7 @@ void RpcProvider::OnMessage(const int sockfd) const {
     // 读取数据， 假如一次读取完成
     char buffer[BUFFER_SIZE];
     while (true) {
-        memset(buffer, 0, BUFFER_SIZE); // 重置缓冲区
-
-        // 接收数据并进行解析
-        // recv(sockfd, buffer, BUFFER_SIZE, 0);
-
-        // std::string msg(buffer);
-
-        // rpc_len len;
-        // memcpy((char*)&len, buffer, sizeof(len));
-
-        // LOG_INFO("len sizeof: %d", sizeof(len));
-        // LOG_INFO("msg %d", len);
-        
+        memset(buffer, 0, BUFFER_SIZE); // 重置缓冲区        
 
         RpcRequest request;
         try

@@ -43,7 +43,7 @@ void run_client() {
         RpcChannel channel("127.0.0.1", 8080);
 
         // 2. 创建桩 (Stub)
-        UserServiceStub stub(channel);
+        UserServiceStub stub(&channel);
 
         // 3. 准备数据 (纯 C++ 对象)
         json req_json;
