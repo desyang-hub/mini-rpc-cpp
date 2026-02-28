@@ -2,7 +2,7 @@
 
 ThreadPool::ThreadPool(int pool_size) : stop{false}
 {
-    for (size_t i = 0; i < pool_size; i++)
+    for (int i = 0; i < pool_size; i++)
     {
         workers.emplace_back([this](){
             

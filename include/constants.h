@@ -7,4 +7,5 @@
 
 using json = nlohmann::json;
 
-// const minirpc::RpcResponse BED_REQUEST{401, "Bad Request"};
+const minirpc::RpcResponse BED_REQUEST{401, "Bad Request"};
+const minirpc::RpcResponse METHOD_NOT_FUND{402, "Method Not Found"};

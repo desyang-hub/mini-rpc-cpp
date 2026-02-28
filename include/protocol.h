@@ -25,13 +25,13 @@ typedef struct RpcResponse_
 {
     json data;
 
-    // RpcResponse_(int code, const std::string &msg) {
-    //     data["code"] = code;
-    //     data["msg"] = msg;
-    // }
+    RpcResponse_(int code, const std::string &msg) {
+        data["code"] = code;
+        data["msg"] = msg;
+    }
 
-    // RpcResponse_(const json& resp) : data(resp) {
-    // }
+    RpcResponse_(const json& resp) : data(resp) {
+    }
 } RpcResponse;
 
 
@@ -68,6 +68,12 @@ private:
             // 断开连接
             if (bytes_read == 0) {
                 LOG_INFO("Client disconnected");
+                close(sockfd);
+                throw std::runtime_error("Recv length error");
+            }
+
+            if (errno == EINTR || errno == EWOULDBLOCK) {
+                LOG_INFO("errno %d", errno);
                 return "";
             }
 
@@ -130,6 +136,7 @@ public:
             if (errno != EINTR) {
                 // 异常退出
                 close(sockfd);
+                perror("recv error");
                 throw std::runtime_error("Recv length error");
             }
         }
@@ -143,6 +150,25 @@ public:
 
         return RpcResponse{json::parse(json_str)};
     }
+
+
+    static bool SendResponse(int sockfd, const RpcResponse& response) {
+        // 将结果返回到客户端
+        const std::string bytes = Protocol::ResponseEncode(RpcResponse{response});
+
+        if (send(sockfd, bytes.data(), bytes.size(), 0) <= 0) {
+            if (errno == EINTR || errno == EWOULDBLOCK) {
+                return true;
+            }
+
+            close(sockfd);
+            // throw std::runtime_error("send data error");
+            return false;
+        }
+
+        return true;
+    }
+    
 };
 
 } // namespace minirpc

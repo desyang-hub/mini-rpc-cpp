@@ -1,5 +1,6 @@
 #include "rpc_channel.h"
 #include "rpc_provider.h"
+#include "rpc_provider_epoll.h"
 #include "service/user_service_impl.h"
 #include "service/user_service_stub.h"
 
@@ -16,7 +17,7 @@ using namespace minirpc;
 // ================= 服务端逻辑 =================
 void run_server() {
     UserServiceImpl service;
-    RpcProvider provider;
+    RpcProviderEpoll provider;
 
     // 注册 "UserService.Login" 方法
     provider.RegisterMethod("UserService", "Login", 
@@ -30,7 +31,8 @@ void run_server() {
     //         service.GetUserInfo(req, resp);
     //     });
 
-    provider.Run(); // 启动服务器 (阻塞)
+    // provider.Run(); // 启动服务器 (阻塞)
+    provider.EpollRun();
 }
 
 // ================= 客户端逻辑 =================

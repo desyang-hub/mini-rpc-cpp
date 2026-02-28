@@ -14,9 +14,8 @@
 #include "thread_pool/thread_pool.h"
 
 #ifndef BUFFER_SIZE
-#define BUFFER_SIZE 1024;
+#define BUFFER_SIZE 1024
 #endif
-
 
 using json = nlohmann::json;
 
