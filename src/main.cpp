@@ -49,19 +49,22 @@ void run_client() {
         json req_json;
         req_json["name"] = "zhangsan";
         req_json["pwd"] = "123456";
-        
-        json resp_json;
 
-        // 4. 【关键】调用远程方法 (像本地一样！)
-        stub.Login(req_json, resp_json);
 
-        // 5. 处理结果
-        if (resp_json["code"] == 0) {
-            std::cout << "✅ SUCCESS: " << resp_json["msg"] << std::endl;
-            std::cout << "   Token: " << resp_json["token"] << std::endl;
-        } else {
-            std::cout << "❌ FAILED: " << resp_json["msg"] << std::endl;
-        }
+        for (int i = 0; i < 10; ++i) {
+            json resp_json;
+
+            // 4. 【关键】调用远程方法 (像本地一样！)
+            stub.Login(req_json, resp_json);
+    
+            // 5. 处理结果
+            if (resp_json["code"] == 0) {
+                std::cout << "✅ SUCCESS: " << resp_json["msg"] << std::endl;
+                std::cout << "   Token: " << resp_json["token"] << std::endl;
+            } else {
+                std::cout << "❌ FAILED: " << resp_json["msg"] << std::endl;
+            }
+        }    
 
     } catch (std::exception& e) {
         std::cerr << "RPC Error: " << e.what() << std::endl;

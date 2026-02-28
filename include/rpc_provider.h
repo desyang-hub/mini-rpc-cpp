@@ -11,6 +11,7 @@
 #include "nlohmann/json.hpp"
 #include "protocol.h"
 #include "constants.h"
+#include "thread_pool/thread_pool.h"
 
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 1024;
@@ -33,6 +34,7 @@ private:
     /* data */
     std::map<std::string, RpcHandler> m_handlers;
     int _port;
+    ThreadPool m_pool;
 
 public:
     RpcProvider(int port = 8080);
@@ -46,7 +48,7 @@ public:
     void RegisterMethod(const std::string &svc, const std::string mth, const RpcHandler &handler);
 
     // 服务启动，对外开放连接处理请求,进入阻塞状态
-    void Run() const;
+    void Run();
 };
 
 RpcProvider::RpcProvider(int port) : _port(port)
@@ -136,10 +138,12 @@ void RpcProvider::OnMessage(const int sockfd) const {
          
         
     }
+
+    close(sockfd);
 }
 
 
-void RpcProvider::Run() const {
+void RpcProvider::Run() {
     // 1. 创建socket
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd == -1) {
@@ -188,9 +192,10 @@ void RpcProvider::Run() const {
 
         LOG_INFO("Client connected: %s", inet_ntoa(client_addr.sin_addr));
 
-        OnMessage(client_fd);
-
-        close(client_fd);
+        // 将任务提交到线程池执行
+        m_pool.submit([this, client_fd](){
+            OnMessage(client_fd);
+        });
     }
 
     

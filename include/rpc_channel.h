@@ -65,8 +65,12 @@ public:
         // 2. 构造请求
         const RpcRequest request{svc, mth, req};
 
+        
+
         // 3. 根据通信协议(protocol)进行数据包封装
         const std::string bytes = Protocol::RequestEncode(request);
+
+        LOG_INFO("req: %s", req.dump().c_str());
 
         int d = 0;
 
