@@ -3,6 +3,7 @@
 #include <string>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <vector>
 
 #include "log.h"
 #include "nlohmann/json.hpp"
@@ -73,7 +74,6 @@ private:
             }
 
             if (errno == EINTR || errno == EWOULDBLOCK) {
-                LOG_INFO("errno %d", errno);
                 return "";
             }
 
@@ -122,32 +122,7 @@ public:
     }
 
     static RpcResponse ResponseDecode(int sockfd) {
-        // 读取长度
-        rpc_len len;
-
-        int bytes_read;
-        if ((bytes_read = recv(sockfd, (char*)&len, sizeof(len), 0)) <= 0) {
-            // 正常断开连接
-            if (bytes_read == 0) {
-                close(sockfd);
-                throw std::runtime_error("Connection closed by server (EOF)");
-            }
-
-            if (errno != EINTR) {
-                // 异常退出
-                close(sockfd);
-                perror("recv error");
-                throw std::runtime_error("Recv length error");
-            }
-        }
-
-        // 读取json_str
-        std::string json_str(len, '\0');
-        if (recv(sockfd, (char*)json_str.data(), len, 0) <= 0) {
-            close(sockfd);
-            throw std::runtime_error("Recv data faild");
-        }
-
+        const std::string json_str = receive(sockfd);
         return RpcResponse{json::parse(json_str)};
     }
 
@@ -168,7 +143,29 @@ public:
 
         return true;
     }
-    
+
+    static const std::string Encode(const std::vector<std::string> &msgs ) {
+        std::string buffer;
+
+        for (const auto &str : msgs) {
+            append_str(buffer, str);
+        }
+
+        return buffer;
+    }
+
+    static const std::string Decode(int sockfd) {
+        return receive(sockfd);
+    }
+
+    static const std::vector<std::string> ReceiveDecode(int sockfd) {
+        // 分别接收 svc, mth, request
+        std::vector<std::string> msgs;
+        msgs.emplace_back(receive(sockfd));
+        msgs.emplace_back(receive(sockfd));
+        msgs.emplace_back(receive(sockfd));
+        return msgs;
+    }
 };
 
 } // namespace minirpc

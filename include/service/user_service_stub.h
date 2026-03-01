@@ -3,6 +3,8 @@
 #include "service/user_service.h"
 #include "rpc_channel.h"
 
+#include "user.pb.h"
+
 using namespace minirpc;
 
 class UserServiceStub : public IUserService
@@ -12,6 +14,8 @@ private:
 public:
 UserServiceStub(RpcChannel *channel);
     void Login(const json& req, json& resp) const;
+
+    void LoginProtobuf(const fixbug::LoginRequest &req, fixbug::LoginResponse &resp) const;
 };
 
 UserServiceStub::UserServiceStub(RpcChannel *channel) : m_channel(channel) {
@@ -20,4 +24,11 @@ UserServiceStub::UserServiceStub(RpcChannel *channel) : m_channel(channel) {
 
 void UserServiceStub::Login(const json& req, json& resp) const {
     m_channel->CallFunc("UserService", "Login", req, resp);
+}
+
+
+void UserServiceStub::LoginProtobuf(const fixbug::LoginRequest &req, fixbug::LoginResponse &resp) const {
+    std::string response;
+    m_channel->CallFunc("UserService", "Login", req.SerializeAsString(), response);
+    resp.ParseFromString(response);
 }

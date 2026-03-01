@@ -112,6 +112,48 @@ public:
             m_sockfd = -1;
         }
     }
+
+
+    void CallFunc(const std::string &svc, const std::string &mth, const std::string& req, std::string &resp) const {
+
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        // 1. 连接到rcp_server
+        if (!EnsureConnected()) {
+            throw std::runtime_error("Faild to Connect");
+        }
+
+        // 2. 构造请求
+        // const RpcRequest request{svc, mth, req};
+
+        // 3. 根据通信协议(protocol)进行数据包封装
+        const std::string bytes = Protocol::Encode({svc, mth, req});
+
+        int d = 0;
+
+        // 4. 发送数据报
+        if ((d = send(m_sockfd, bytes.data(), bytes.size(), 0)) < 0) {
+            // 异常
+            if (errno != EINTR) {
+                perror("send error");
+                close(m_sockfd);
+                throw std::runtime_error("Send data error");
+            }
+        }
+
+        // 5. 接收回复
+        try
+        {
+            // 这里回复只需要读取一次就好了
+            const std::string bytes = Protocol::Decode(m_sockfd);
+            resp = bytes;
+        }
+        catch(const std::exception& e)
+        {
+            // 尝试重连
+            m_sockfd = -1;
+        }
+    }
 };
 
 
